@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+    <head>
+            <style>
+                    .card_header_style
+                    {
+                        background : yellow;
+                    }
+                    .body_style
+                    {
+                        background : lightblue;
+                    }
+            </style>
+            <script>
+                function updateval(x)
+                {
+                    
+                    var id=x;
+                    
+                    document.getElementById(id).innerHTML="<form id=up><input type=hidden name=id value="+id+"><input type=text name=updated_task><input name=save value=save type=submit></form>";
+                }
+            </script>
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    </head>
+    <body>
+            <div class=container>
+                    <div class="row mt-4">
+                        <div class="col-sm">
+                            <div class="card" >
+                                    <h5 class="card-header card_header_style">To do list</h5>
+                                    <div class="card-body " style="background: pink;">
+                                        <div class="container" id="list_items">
+                                                                             
+                                        </div>
+                                    </div>
+                                    <div class="card-body body_style">
+                                            <form id="target">
+                                                    <input type="text" id="name" name="name" >
+                                                    <input type="submit" value="submit">
+                                            </form>
+                                    </div>
+                            </div>
+                        </div>    
+                    </div>
+            </div>
+     
+        <script>
+               // $(document).ready(function(){
+                    $( "#target" ).submit(function( event ) {
+                        event.preventDefault();
+                        $.post(
+                            'http://tophp.local.geekydev.com/append.php',
+                            
+                            $("#target").serialize(),
+
+                            function()
+                            {
+                               // alert("done");
+                                location.reload();
+                                //document.getElementById(name).innerHTML="";
+                                //$("name").reset();
+                            }
+                    );
+                    });
+               // });
+               $(document).ready(function(){
+                        $.get(
+                            'http://tophp.local.geekydev.com/view.php',
+
+                            
+                            function(data)
+                            {   
+                                data=JSON.parse(data);
+                                var str="";
+                                for( var i=0; i<data['result'].length;i++ )
+                                {
+                                    if(data['status'][i] == 'ok')
+                                    {
+                                       if(data['result'][i].task_status==0)
+                                       {
+                                        str=str+
+                                        '<div class=row mt-4>'+
+                                        '<div class="col-sm-2" >' + 
+                                        '<input type=checkbox id=check name=' + data['result'][i].id + '>' +
+                                        '</div>' +
+                                        '<div class=col-sm-4 >'+
+                                            '<div id='+ data['result'][i].id +'>' +
+                                                ' <label>'+ data['result'][i].task_name +'</label>' +    
+                                                '<input id=put name='+ data['result'][i].id+' type=button value=update onclick=updateval('+ data['result'][i].id+') >'+    
+                                            '</div>'+
+                                        '</div>'+
+                                        '<div class="col-sm-2" >' + 
+                                            '<input type=button id=del value=delete name=' + data['result'][i].id + '>' +
+                                        '</div>' +
+                                        '</div>';
+                                       }
+                                       else
+                                       {
+                                        str=str+
+                                        '<div class=row mt-4>'+
+                                        '<div class="col-sm-2" >' + 
+                                        '<input type=checkbox id=check name=' + data['result'][i].id + ' checked >' +
+                                        '</div>' +
+                                        '<div class=col-sm-4 >'+
+                                            '<div id='+ data['result'][i].id +'>' +
+                                                ' <label><strike>'+ data['result'][i].task_name +'</strike></label>' +     
+                                            '</div>'+
+                                        '</div>'+
+                                        '<div class="col-sm-2" >' + 
+                                            '<input type=button id=del value=delete name=' + data['result'][i].id + '>' +
+                                        '</div>' +
+                                        '</div>';
+                                       }
+                                    }               
+                                    else
+                                    {
+                                    } 
+                                }
+                                $('#list_items').html(str);
+                            }
+                        
+                    );
+               });
+               
+/////////////////////////////////
+$(document).on('click','#del',function(){
+    $.ajax({
+                        type:'POST',
+                        url:'http://tophp.local.geekydev.com/del.php',
+                        data:{user_id:this.name},
+                        
+                            success:function(data)
+                            {
+                                location.reload();
+                            }
+                    });
+});
+////////////////////////////////////
+$(document).on('click','#check',function(){
+    $.ajax({
+                        type:'POST',
+                        url:'http://tophp.local.geekydev.com/checked_state.php',
+                        data:{id:this.name},
+                        
+                            success:function(data)
+                            {
+                                location.reload();
+                            }
+                    });
+});
+
+$(document).on('submit','#up',function(event){
+    event.preventDefault();
+            $.post(
+                 'http://tophp.local.geekydev.com/update.php',
+                $("#up").serialize(),
+                function()
+                {
+                    alert("data updated successfully!!");
+                    location.reload();
+                }
+            );
+});
+
+        </script>
+    </body>
+</html>
